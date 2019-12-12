@@ -26,6 +26,14 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static qboolean	is_quad;
 static byte		is_silenced;
 
+static int heatcount = 0;
+static int blaster_heat = 0;
+static int machinegun_heat = 0;
+static int shotgun_heat = 0;
+static int grenade_heat = 0;
+static int chaingun_heat = 0;
+static int bfg_heat = 0;
+
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
 
@@ -272,6 +280,20 @@ void NoAmmoWeaponChange (edict_t *ent)
 	ent->client->newweapon = FindItem ("blaster");
 }
 
+/////////////////////////////////////////////////////
+void Heat_Subtract(){
+
+	if (blaster_heat > 0)
+		blaster_heat = blaster_heat - 1;
+	if (machinegun_heat > 0)
+		machinegun_heat = machinegun_heat - 1;
+	if (shotgun_heat > 0)
+		shotgun_heat = shotgun_heat - 10;
+	if (grenade_heat)
+		grenade_heat = grenade_heat - 7;
+
+}
+///////////////////////////////////////////////////
 /*
 =================
 Think_Weapon
@@ -281,6 +303,7 @@ Called by ClientBeginServerFrame and ClientThink
 */
 void Think_Weapon (edict_t *ent)
 {
+	
 	// if just died, put the weapon away
 	if (ent->health < 1)
 	{
@@ -298,6 +321,7 @@ void Think_Weapon (edict_t *ent)
 			is_silenced = 0;
 		ent->client->pers.weapon->weaponthink (ent);
 	}
+	Heat_Subtract();
 }
 
 
@@ -364,6 +388,25 @@ void Drop_Weapon (edict_t *ent, gitem_t *item)
 	Drop_Item (ent, item);
 	ent->client->pers.inventory[index]--;
 }
+
+////////////////////////////////////////////////////////////////////
+void Heat_Check(edict_t *ent){
+	if (blaster_heat > 100){
+		ent->client->blaster_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->blaster_heatindex = SOME_HEAT;
+	}
+	if (machinegun_heat > 100){
+		ent->client->machinegun_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->machinegun_heatindex = SOME_HEAT;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////
 
 
 /*
@@ -781,6 +824,7 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
 	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
+	fire_rocket(ent, start, right, damage, 650, damage_radius, radius_damage);	
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -818,6 +862,7 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	vec3_t	forward, right;
 	vec3_t	start;
 	vec3_t	offset;
+	
 
 	if (is_quad)
 		damage *= 4;
@@ -841,6 +886,11 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	gi.multicast (ent->s.origin, MULTICAST_PVS);
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	//////////////////////////////////////////////
+	blaster_heat = blaster_heat + 25;
+	Heat_Check(ent);
+	/////////////////////////////////////////////
 }
 
 
@@ -852,7 +902,15 @@ void Weapon_Blaster_Fire (edict_t *ent)
 		damage = 15;
 	else
 		damage = 10;
-	Blaster_Fire (ent, vec3_origin, damage, false, EF_BLASTER);
+	
+	/////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+
+	if (ent->client->blaster_heatindex != OVERHEAT){
+		Blaster_Fire(ent, vec3_origin, damage, false, EF_BLASTER);
+	}
+	////////////////////////////////////////////////////////////
+	
 	ent->client->ps.gunframe++;
 }
 
@@ -1011,8 +1069,17 @@ void Machinegun_Fire (edict_t *ent)
 	AngleVectors (angles, forward, right, NULL);
 	VectorSet(offset, 0, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_bullet (ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
+	////////////////////////////////////////////////////////////////////////////////////
+	
+	Heat_Check(ent);
 
+	if (ent->client->machinegun_heatindex != OVERHEAT){
+		fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_MACHINEGUN);
+		machinegun_heat = machinegun_heat + 15;
+		Heat_Check(ent);
+	}
+	
+	///////////////////////////////////////////////////////////////////////////////////////////
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
 	gi.WriteByte (MZ_MACHINEGUN | is_silenced);

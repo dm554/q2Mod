@@ -106,6 +106,20 @@ typedef enum
 	AMMO_SLUGS
 } ammo_t;
 
+/////////////////////////////////////////////////////////
+/////////////////////	DERIK CODE	/////////////////////
+/////////////////////////////////////////////////////////
+
+//Declaration of the different states of weapon heat.
+typedef enum{
+	NO_HEAT,
+	SOME_HEAT,
+	OVERHEAT,
+	COOLDOWN
+}heatindex_t;
+
+
+
 
 //deadflag
 #define DEAD_NO					0
@@ -959,6 +973,11 @@ struct gclient_s
 
 	edict_t		*chase_target;		// player we are chasing
 	qboolean	update_chase;		// need to update chase info?
+
+	heatindex_t blaster_heatindex;			// derik's heat index
+	heatindex_t machinegun_heatindex;
+	heatindex_t shotgun_heatindex;
+	heatindex_t grenade_heatindex;
 };
 
 
@@ -1110,4 +1129,5 @@ struct edict_s
 	moveinfo_t		moveinfo;
 	monsterinfo_t	monsterinfo;
 };
+
 
