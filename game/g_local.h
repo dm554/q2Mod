@@ -978,6 +978,12 @@ struct gclient_s
 	heatindex_t machinegun_heatindex;
 	heatindex_t shotgun_heatindex;
 	heatindex_t grenade_heatindex;
+	heatindex_t chaingun_heatindex;
+	heatindex_t bfg_heatindex;
+	heatindex_t ssgun_heatindex;
+	heatindex_t railgun_heatindex;
+	heatindex_t rocket_heatindex;
+	heatindex_t hyperblaster_heatindex;
 };
 
 

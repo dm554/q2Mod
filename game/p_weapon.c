@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 static qboolean	is_quad;
 static byte		is_silenced;
 
+//Heat Declarations
 static int heatcount = 0;
 static int blaster_heat = 0;
 static int machinegun_heat = 0;
@@ -33,6 +34,10 @@ static int shotgun_heat = 0;
 static int grenade_heat = 0;
 static int chaingun_heat = 0;
 static int bfg_heat = 0;
+static int ssgun_heat = 0;
+static int railgun_heat = 0;
+static int rocket_heat = 0;
+static int hyperblaster_heat = 0;
 
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
@@ -288,10 +293,21 @@ void Heat_Subtract(){
 	if (machinegun_heat > 0)
 		machinegun_heat = machinegun_heat - 1;
 	if (shotgun_heat > 0)
-		shotgun_heat = shotgun_heat - 10;
-	if (grenade_heat)
-		grenade_heat = grenade_heat - 7;
-
+		shotgun_heat = shotgun_heat - 1;
+	if (grenade_heat > 0)
+		grenade_heat = grenade_heat - 1;
+	if (chaingun_heat > 0)
+		chaingun_heat = chaingun_heat - 1;
+	if (railgun_heat > 0)
+		railgun_heat = railgun_heat - 1;
+	if (bfg_heat > 0)
+		bfg_heat = bfg_heat - 1;
+	if (rocket_heat > 0)
+		rocket_heat = rocket_heat - 1;
+	if (ssgun_heat > 0)
+		ssgun_heat = ssgun_heat - 1;
+	if (hyperblaster_heat > 0)
+		hyperblaster_heat = hyperblaster_heat - 1;
 }
 ///////////////////////////////////////////////////
 /*
@@ -391,6 +407,7 @@ void Drop_Weapon (edict_t *ent, gitem_t *item)
 
 ////////////////////////////////////////////////////////////////////
 void Heat_Check(edict_t *ent){
+	
 	if (blaster_heat > 100){
 		ent->client->blaster_heatindex = OVERHEAT;
 	}
@@ -403,9 +420,56 @@ void Heat_Check(edict_t *ent){
 	else{
 		ent->client->machinegun_heatindex = SOME_HEAT;
 	}
+	if (shotgun_heat > 100){
+		ent->client->shotgun_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->shotgun_heatindex = SOME_HEAT;
+	}
+	if (grenade_heat > 100){
+		ent->client->grenade_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->grenade_heatindex = SOME_HEAT;
+	}
+	if (chaingun_heat > 100){
+		ent->client->chaingun_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->chaingun_heatindex = SOME_HEAT;
+	}
+	if (railgun_heat > 100){
+		ent->client->railgun_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->railgun_heatindex = SOME_HEAT;
+	}
+	if (bfg_heat > 100){
+		ent->client->bfg_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->bfg_heatindex = SOME_HEAT;
+	}
+	if (rocket_heat > 100){
+		ent->client->rocket_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->rocket_heatindex = SOME_HEAT;
+	}
+	if (hyperblaster_heat > 100){
+		ent->client->hyperblaster_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->hyperblaster_heatindex = SOME_HEAT;
+	}
+	if (ssgun_heat > 100){
+		ent->client->ssgun_heatindex = OVERHEAT;
+	}
+	else{
+		ent->client->ssgun_heatindex = SOME_HEAT;
+	}
+	
 }
-
-
 //////////////////////////////////////////////////////////////////////
 
 
@@ -767,9 +831,14 @@ void weapon_grenadelauncher_fire (edict_t *ent)
 
 	VectorScale (forward, -2, ent->client->kick_origin);
 	ent->client->kick_angles[0] = -1;
-
-	fire_grenade (ent, start, forward, damage, 600, 2.5, radius);
-
+	///////////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+	if (ent->client->grenade_heatindex != OVERHEAT){
+		fire_grenade(ent, start, forward, damage, 600, 2.5, radius);
+		grenade_heat = grenade_heat + 75;
+		Heat_Check(ent);
+	}
+	//////////////////////////////////////////////////////////////////
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
 	gi.WriteByte (MZ_GRENADE | is_silenced);
@@ -823,8 +892,15 @@ void Weapon_RocketLauncher_Fire (edict_t *ent)
 
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rocket (ent, start, forward, damage, 650, damage_radius, radius_damage);
-	fire_rocket(ent, start, right, damage, 650, damage_radius, radius_damage);	
+	
+	/////////////////////////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+	if (ent->client->rocket_heatindex != OVERHEAT){
+		fire_rocket(ent, start, forward, damage, 650, damage_radius, radius_damage);
+		rocket_heat = rocket_heat + 30;
+		Heat_Check(ent);
+	}
+	/////////////////////////////////////////////////////////////////////////////////
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -888,8 +964,7 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 
 	//////////////////////////////////////////////
-	blaster_heat = blaster_heat + 25;
-	Heat_Check(ent);
+
 	/////////////////////////////////////////////
 }
 
@@ -908,6 +983,8 @@ void Weapon_Blaster_Fire (edict_t *ent)
 
 	if (ent->client->blaster_heatindex != OVERHEAT){
 		Blaster_Fire(ent, vec3_origin, damage, false, EF_BLASTER);
+		blaster_heat = blaster_heat + 25;
+		Heat_Check(ent);
 	}
 	////////////////////////////////////////////////////////////
 	
@@ -962,7 +1039,15 @@ void Weapon_HyperBlaster_Fire (edict_t *ent)
 				damage = 15;
 			else
 				damage = 20;
-			Blaster_Fire (ent, offset, damage, true, effect);
+
+			/////////////////////////////////////////////////////////////
+			Heat_Check(ent);
+
+			if (ent->client->hyperblaster_heatindex != OVERHEAT){
+				Blaster_Fire(ent, offset, damage, true, effect);
+				hyperblaster_heat = hyperblaster_heat + 5;
+			}
+			////////////////////////////////////////////////////////////
 			if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
 				ent->client->pers.inventory[ent->client->ammo_index]--;
 
@@ -1205,19 +1290,23 @@ void Chaingun_Fire (edict_t *ent)
 		ent->client->kick_origin[i] = crandom() * 0.35;
 		ent->client->kick_angles[i] = crandom() * 0.7;
 	}
+	/////////////////////////////////////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+	if (ent->client->chaingun_heatindex != OVERHEAT){
+		for (i = 0; i < shots; i++)
+		{
+			// get start / end positions
+			AngleVectors(ent->client->v_angle, forward, right, up);
+			r = 7 + crandom() * 4;
+			u = crandom() * 4;
+			VectorSet(offset, 0, r, u + ent->viewheight - 8);
+			P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
 
-	for (i=0 ; i<shots ; i++)
-	{
-		// get start / end positions
-		AngleVectors (ent->client->v_angle, forward, right, up);
-		r = 7 + crandom()*4;
-		u = crandom()*4;
-		VectorSet(offset, 0, r, u + ent->viewheight-8);
-		P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-
-		fire_bullet (ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
+			fire_bullet(ent, start, forward, damage, kick, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, MOD_CHAINGUN);
+		}
+		chaingun_heat = chaingun_heat + 1;
 	}
-
+	///////////////////////////////////////////////////////////////////////////////////////////////////////
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
@@ -1275,12 +1364,19 @@ void weapon_shotgun_fire (edict_t *ent)
 		damage *= 4;
 		kick *= 4;
 	}
-
-	if (deathmatch->value)
-		fire_shotgun (ent, start, forward, damage, kick, 500, 500, DEFAULT_DEATHMATCH_SHOTGUN_COUNT, MOD_SHOTGUN);
-	else
-		fire_shotgun (ent, start, forward, damage, kick, 500, 500, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
-
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	Heat_Check(ent);
+	if (ent->client->shotgun_heatindex != OVERHEAT){
+		if (deathmatch->value)
+			fire_shotgun(ent, start, forward, damage, kick, 500, 500, DEFAULT_DEATHMATCH_SHOTGUN_COUNT, MOD_SHOTGUN);
+		else
+			fire_shotgun(ent, start, forward, damage, kick, 500, 500, DEFAULT_SHOTGUN_COUNT, MOD_SHOTGUN);
+		shotgun_heat = shotgun_heat + 30;
+		Heat_Check(ent);
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
 	gi.WriteShort (ent-g_edicts);
@@ -1325,15 +1421,21 @@ void weapon_supershotgun_fire (edict_t *ent)
 		damage *= 4;
 		kick *= 4;
 	}
-
-	v[PITCH] = ent->client->v_angle[PITCH];
-	v[YAW]   = ent->client->v_angle[YAW] - 5;
-	v[ROLL]  = ent->client->v_angle[ROLL];
-	AngleVectors (v, forward, NULL, NULL);
-	fire_shotgun (ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT/2, MOD_SSHOTGUN);
-	v[YAW]   = ent->client->v_angle[YAW] + 5;
-	AngleVectors (v, forward, NULL, NULL);
-	fire_shotgun (ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT/2, MOD_SSHOTGUN);
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+	if (ent->client->ssgun_heatindex != OVERHEAT){
+		v[PITCH] = ent->client->v_angle[PITCH];
+		v[YAW] = ent->client->v_angle[YAW] - 5;
+		v[ROLL] = ent->client->v_angle[ROLL];
+		AngleVectors(v, forward, NULL, NULL);
+		fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
+		v[YAW] = ent->client->v_angle[YAW] + 5;
+		AngleVectors(v, forward, NULL, NULL);
+		fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
+		ssgun_heat = ssgun_heat + 30;
+		Heat_Check(ent);
+	}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -1398,7 +1500,14 @@ void weapon_railgun_fire (edict_t *ent)
 
 	VectorSet(offset, 0, 7,  ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_rail (ent, start, forward, damage, kick);
+	///////////////////////////////////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+	if (ent->client->railgun_heatindex != OVERHEAT){
+		fire_rail(ent, start, forward, damage, kick);
+		railgun_heat = railgun_heat + 33;
+		Heat_Check(ent);
+	}
+	//////////////////////////////////////////////////////////////////////////////////////////
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);
@@ -1479,8 +1588,14 @@ void weapon_bfg_fire (edict_t *ent)
 
 	VectorSet(offset, 8, 8, ent->viewheight-8);
 	P_ProjectSource (ent->client, ent->s.origin, offset, forward, right, start);
-	fire_bfg (ent, start, forward, damage, 400, damage_radius);
-
+	/////////////////////////////////////////////////////////////////////////////////////
+	Heat_Check(ent);
+	if (ent->client->bfg_heatindex != OVERHEAT){
+		fire_bfg(ent, start, forward, damage, 400, damage_radius);
+		bfg_heat = bfg_heat + 75;
+		Heat_Check(ent);
+	}
+	////////////////////////////////////////////////////////////////////////////////////
 	ent->client->ps.gunframe++;
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
