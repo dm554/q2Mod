@@ -411,6 +411,17 @@ void T_Damage (edict_t *targ, edict_t *inflictor, edict_t *attacker, vec3_t dir,
 
 	client = targ->client;
 
+	if (client){
+		if (client->parryactivator == ACTIVATE){
+			damage = 0;
+			client->fire = FIRE;
+			if (client->parrystate == REFLECT){
+				client->fire = FIRE;
+				client->parrystate = PARRY;
+			}
+		}
+	}
+
 	if (dflags & DAMAGE_BULLET)
 		te_sparks = TE_BULLET_SPARKS;
 	else

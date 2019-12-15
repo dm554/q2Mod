@@ -39,6 +39,8 @@ static int railgun_heat = 0;
 static int rocket_heat = 0;
 static int hyperblaster_heat = 0;
 
+static int parryTimer = 0;
+
 
 void weapon_grenade_fire (edict_t *ent, qboolean held);
 
@@ -309,6 +311,54 @@ void Heat_Subtract(){
 	if (hyperblaster_heat > 0)
 		hyperblaster_heat = hyperblaster_heat - 1;
 }
+
+void Blaster_Fire(edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
+{
+	vec3_t	forward, right;
+	vec3_t	start;
+	vec3_t	offset;
+
+
+	if (is_quad)
+		damage *= 4;
+	AngleVectors(ent->client->v_angle, forward, right, NULL);
+	VectorSet(offset, 24, 8, ent->viewheight - 8);
+	VectorAdd(offset, g_offset, offset);
+	P_ProjectSource(ent->client, ent->s.origin, offset, forward, right, start);
+
+	VectorScale(forward, -2, ent->client->kick_origin);
+	ent->client->kick_angles[0] = -1;
+
+	fire_blaster(ent, start, forward, damage, 1000, effect, hyper);
+
+	// send muzzle flash
+	gi.WriteByte(svc_muzzleflash);
+	gi.WriteShort(ent - g_edicts);
+	if (hyper)
+		gi.WriteByte(MZ_HYPERBLASTER | is_silenced);
+	else
+		gi.WriteByte(MZ_BLASTER | is_silenced);
+	gi.multicast(ent->s.origin, MULTICAST_PVS);
+
+	PlayerNoise(ent, start, PNOISE_WEAPON);
+
+	//////////////////////////////////////////////
+
+	/////////////////////////////////////////////
+}
+
+void parry(edict_t*ent){
+	//Parry is Activated somewhere else. This is pureley state changes and is called in weapon think
+	//Determines is the effect is over then deactivates the state
+	ent->client->parryactivator = ACTIVATE;
+	if (ent->client->fire != HOLD)
+	{
+		Blaster_Fire(ent, vec3_origin, 100, false, EF_BLASTER);
+	}
+	ent->client->fire = HOLD;
+
+
+}
 ///////////////////////////////////////////////////
 /*
 =================
@@ -338,6 +388,7 @@ void Think_Weapon (edict_t *ent)
 		ent->client->pers.weapon->weaponthink (ent);
 	}
 	Heat_Subtract();
+	parry(ent);
 }
 
 
@@ -470,6 +521,8 @@ void Heat_Check(edict_t *ent){
 	}
 	
 }
+
+
 //////////////////////////////////////////////////////////////////////
 
 
@@ -933,7 +986,7 @@ BLASTER / HYPERBLASTER
 ======================================================================
 */
 
-void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
+/*void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, int effect)
 {
 	vec3_t	forward, right;
 	vec3_t	start;
@@ -966,7 +1019,7 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	//////////////////////////////////////////////
 
 	/////////////////////////////////////////////
-}
+}*/
 
 
 void Weapon_Blaster_Fire (edict_t *ent)

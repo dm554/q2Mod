@@ -118,6 +118,23 @@ typedef enum{
 	COOLDOWN
 }heatindex_t;
 
+//Different states of lightsaber parry
+typedef enum{
+	NORMAL,
+	REFLECT,
+	PARRY
+}parrystate_t;
+
+typedef enum{
+	DEACTIVATE,
+	ACTIVATE
+}parryactivator_t;
+
+typedef enum{
+	HOLD, 
+	FIRE
+}fire_t;
+
 
 
 
@@ -984,6 +1001,10 @@ struct gclient_s
 	heatindex_t railgun_heatindex;
 	heatindex_t rocket_heatindex;
 	heatindex_t hyperblaster_heatindex;
+	
+	parrystate_t parrystate;
+	parryactivator_t parryactivator;
+	fire_t fire;
 };
 
 
