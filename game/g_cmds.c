@@ -754,6 +754,8 @@ void Cmd_Wave_f (edict_t *ent)
 		gi.cprintf (ent, PRINT_HIGH, "flipoff\n");
 		ent->s.frame = FRAME_flip01-1;
 		ent->client->anim_end = FRAME_flip12;
+		ent->client->parryactivator = DEACTIVATE;
+		ent->client->parryactivator = ACTIVATE;
 		break;
 	case 1:
 		gi.cprintf (ent, PRINT_HIGH, "salute\n");

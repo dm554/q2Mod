@@ -348,15 +348,24 @@ void Blaster_Fire(edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, int
 }
 
 void parry(edict_t*ent){
-	//Parry is Activated somewhere else. This is pureley state changes and is called in weapon think
-	//Determines is the effect is over then deactivates the state
-	ent->client->parryactivator = ACTIVATE;
-	if (ent->client->fire != HOLD)
-	{
-		Blaster_Fire(ent, vec3_origin, 100, false, EF_BLASTER);
+
+	
+	if (ent->client->fire != HOLD){
+		if (parryTimer < 20){
+			Blaster_Fire(ent, vec3_origin, 100, false, EF_BLASTER);
+		}
+		else if (parryTimer < 60){
+			Blaster_Fire(ent, vec3_origin, 20, false, EF_BLASTER);
+		}
 	}
 	ent->client->fire = HOLD;
-
+	if (parryTimer > 60){
+		ent->client->parryactivator = DEACTIVATE;
+		parryTimer = 0;
+	}
+	else{
+		parryTimer++;
+	}
 
 }
 ///////////////////////////////////////////////////
