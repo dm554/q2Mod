@@ -761,11 +761,13 @@ void Cmd_Wave_f (edict_t *ent)
 		gi.cprintf (ent, PRINT_HIGH, "salute\n");
 		ent->s.frame = FRAME_salute01-1;
 		ent->client->anim_end = FRAME_salute11;
+		ent->client->forcePush = FIRE;
 		break;
 	case 2:
 		gi.cprintf (ent, PRINT_HIGH, "taunt\n");
 		ent->s.frame = FRAME_taunt01-1;
 		ent->client->anim_end = FRAME_taunt17;
+		ent->client->forcePull = FIRE;
 		break;
 	case 3:
 		gi.cprintf (ent, PRINT_HIGH, "wave\n");

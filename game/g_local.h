@@ -138,6 +138,8 @@ typedef enum{
 
 
 
+
+
 //deadflag
 #define DEAD_NO					0
 #define DEAD_DYING				1
@@ -1005,6 +1007,8 @@ struct gclient_s
 	parrystate_t parrystate;
 	parryactivator_t parryactivator;
 	fire_t fire;
+	fire_t forcePush;
+	fire_t forcePull;
 };
 
 

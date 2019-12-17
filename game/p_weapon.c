@@ -368,6 +368,37 @@ void parry(edict_t*ent){
 	}
 
 }
+
+void forceAttacks(edict_t*ent){
+	
+	vec3_t	start;
+	vec3_t	forward, back;
+	trace_t	tr;
+
+	VectorCopy(ent->s.origin, start);
+	start[2] += ent->viewheight;
+	AngleVectors(ent->client->v_angle, forward, NULL, NULL);
+	VectorMA(start, 8192, forward, back);
+	tr = gi.trace(start, NULL, NULL, back, ent, MASK_SHOT);
+		
+	if (ent->client->forcePush != HOLD){
+		if (tr.ent && ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client))){
+			VectorScale(forward, 5000, forward);
+			VectorAdd(forward, tr.ent->velocity, tr.ent->velocity);
+			ent->client->forcePush = HOLD;
+		}
+	}
+
+	if (ent->client->forcePull != HOLD){
+		if (tr.ent && ((tr.ent->svflags & SVF_MONSTER) || (tr.ent->client))){
+			VectorScale(forward, -5000, forward);
+			VectorAdd(forward, tr.ent->velocity, tr.ent->velocity);
+			ent->client->forcePull = HOLD;
+		}
+	}
+
+
+}
 ///////////////////////////////////////////////////
 /*
 =================
@@ -398,6 +429,7 @@ void Think_Weapon (edict_t *ent)
 	}
 	Heat_Subtract();
 	parry(ent);
+	forceAttacks(ent);
 }
 
 
@@ -1490,7 +1522,7 @@ void weapon_supershotgun_fire (edict_t *ent)
 		v[YAW] = ent->client->v_angle[YAW] - 5;
 		v[ROLL] = ent->client->v_angle[ROLL];
 		AngleVectors(v, forward, NULL, NULL);
-		fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
+		fire_shotgun(ent, start, forward, 0, 10000000, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
 		v[YAW] = ent->client->v_angle[YAW] + 5;
 		AngleVectors(v, forward, NULL, NULL);
 		fire_shotgun(ent, start, forward, damage, kick, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SSHOTGUN_COUNT / 2, MOD_SSHOTGUN);
