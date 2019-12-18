@@ -1003,12 +1003,27 @@ struct gclient_s
 	heatindex_t railgun_heatindex;
 	heatindex_t rocket_heatindex;
 	heatindex_t hyperblaster_heatindex;
+
+	int blaster_heat;
+	int machinegun_heat;
+	int shotgun_heat;
+	int grenade_heat;
+	int chaingun_heat;
+	int bfg_heat;
+	int ssgun_heat;
+	int railgun_heat;
+	int rocket_heat;
+	int hyperblaster_heat;
 	
+	int parrycount;
+
 	parrystate_t parrystate;
 	parryactivator_t parryactivator;
 	fire_t fire;
 	fire_t forcePush;
 	fire_t forcePull;
+	fire_t forceExplosion;
+	fire_t forceDash;
 };
 
 

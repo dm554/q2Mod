@@ -352,10 +352,12 @@ void parry(edict_t*ent){
 	
 	if (ent->client->fire != HOLD){
 		if (parryTimer < 20){
-			Blaster_Fire(ent, vec3_origin, 100, false, EF_BLASTER);
+			Blaster_Fire(ent, vec3_origin, 100, false, EF_BFG);
+			ent->client->parrycount++;
 		}
 		else if (parryTimer < 60){
-			Blaster_Fire(ent, vec3_origin, 20, false, EF_BLASTER);
+			Blaster_Fire(ent, vec3_origin, 20, false, EF_GIB);
+			ent->client->parrycount++;
 		}
 	}
 	ent->client->fire = HOLD;
@@ -369,6 +371,7 @@ void parry(edict_t*ent){
 
 }
 
+//Some code in function is from Push and Pull on q2 devels
 void forceAttacks(edict_t*ent){
 	
 	vec3_t	start;
@@ -395,6 +398,17 @@ void forceAttacks(edict_t*ent){
 			VectorAdd(forward, tr.ent->velocity, tr.ent->velocity);
 			ent->client->forcePull = HOLD;
 		}
+	}
+
+	if (ent->client->forceDash != HOLD){
+		VectorScale(forward, 1500, forward);
+		VectorAdd(forward, ent->velocity, ent->velocity);
+		ent->client->forceDash = HOLD;
+	}
+
+	if (ent->client->forceExplosion != HOLD){
+		fire_bfg(ent, ent->s.origin, ent->s.origin, 100, 400, 2000);
+		ent->client->forceExplosion = HOLD;
 	}
 
 

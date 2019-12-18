@@ -773,12 +773,14 @@ void Cmd_Wave_f (edict_t *ent)
 		gi.cprintf (ent, PRINT_HIGH, "wave\n");
 		ent->s.frame = FRAME_wave01-1;
 		ent->client->anim_end = FRAME_wave11;
+		ent->client->forceExplosion = FIRE;
 		break;
 	case 4:
 	default:
 		gi.cprintf (ent, PRINT_HIGH, "point\n");
 		ent->s.frame = FRAME_point01-1;
 		ent->client->anim_end = FRAME_point12;
+		ent->client->forceDash = FIRE;
 		break;
 	}
 }
